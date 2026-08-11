@@ -1,0 +1,38 @@
+name: Release
+
+# Manual only — never fires on push. Publishing is a deliberate, explicit action.
+on:
+  workflow_dispatch: {}
+
+# NOTE (first publish): npm trusted publishing (OIDC, no long-lived token) requires the
+# package to already exist on npm before it can be registered as this workflow's trusted
+# publisher at npmjs.com -> package -> Settings -> Trusted Publisher. So the very first
+# `@andiai/cli` publish must be a manual `npm publish` from a maintainer's machine (with
+# 2FA/OTP), and only AFTER that should the trusted publisher be configured so this workflow
+# can publish subsequent versions via OIDC with no token to rotate or leak.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      - run: npm run build
+
+      # npm >= 11.5.1 supports OIDC trusted publishing: no NODE_AUTH_TOKEN needed once the
+      # trusted publisher is configured on npmjs.com (see the NOTE above for the bootstrap step).
+      - run: npm publish --provenance --access public

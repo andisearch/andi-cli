@@ -1,0 +1,55 @@
+{
+  "name": "@andiai/cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for the Andi Search API — web search, page fetch, and a local MCP server for AI agents.",
+  "type": "module",
+  "bin": {
+    "andi": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andisearch/andi-cli.git"
+  },
+  "homepage": "https://api.andiai.com",
+  "bugs": {
+    "url": "https://github.com/andisearch/andi-cli/issues"
+  },
+  "keywords": [
+    "andi",
+    "search",
+    "web-search",
+    "mcp",
+    "model-context-protocol",
+    "cli",
+    "ai-agent"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.9",
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.10"
+  }
+}
