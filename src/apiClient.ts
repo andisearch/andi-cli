@@ -32,6 +32,8 @@ export class CliError extends Error {
   reason?: string;
   /** 429/503 only: the API's own retry hint, in seconds. */
   retryAfterSeconds?: number;
+  /** The originating HTTP status, where distinguishing it matters (e.g. 503 vs 408/504 for retry policy). */
+  status?: number;
 
   constructor(
     code: string,
@@ -39,7 +41,7 @@ export class CliError extends Error {
     exitCode: number,
     hint?: string,
     retryable = false,
-    extra?: { reason?: string; retryAfterSeconds?: number }
+    extra?: { reason?: string; retryAfterSeconds?: number; status?: number }
   ) {
     super(message);
     this.name = 'CliError';
@@ -49,6 +51,7 @@ export class CliError extends Error {
     this.retryable = retryable;
     this.reason = extra?.reason;
     this.retryAfterSeconds = extra?.retryAfterSeconds;
+    this.status = extra?.status;
   }
 }
 
@@ -153,7 +156,7 @@ export async function apiGet(
       EXIT_CODES.service_unavailable,
       undefined,
       true,
-      { retryAfterSeconds }
+      { retryAfterSeconds, status: response.status }
     );
   }
   // 422: the PAGE failed, not the service — retrying the same URL is pointless.

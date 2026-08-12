@@ -1,6 +1,6 @@
 {
   "name": "@andiai/cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Command-line interface for the Andi Search API — web search, page fetch, and a local MCP server for AI agents.",
   "type": "module",
   "bin": {

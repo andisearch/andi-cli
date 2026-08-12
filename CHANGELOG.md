@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.2 — 2026-08-12
+
+- `andi fetch` retries automatically on a 503 "content warming" response: up to 3 total
+  attempts, waiting the API's `Retry-After` hint each time, capped at 30 cumulative seconds.
+  `--no-retry` disables it (fails immediately, as before); `--retry-max <seconds>` overrides the
+  cumulative wait budget. Every other error, including 408/504 (which also map to
+  `service_unavailable`), passes straight through unretried.
+- `andi_web_search` tool description rewritten: drops engine-internals detail in favor of
+  Andi's own index scale ("tens of billions of pages") and fallback-search framing.
+- `--max-content-length` default corrected to 100000 (was documented as 200000; 200000 remains
+  the max) across `andi fetch` help text, `andi mcp` tool schema, and the README.
+
 ## 0.1.1 — 2026-08-11
 
 - `andi mcp` tool schemas now match the hosted `/mcp` server exactly: adds `queries` (up to 5,

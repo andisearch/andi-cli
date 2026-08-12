@@ -68,7 +68,7 @@ export const FETCH_TOOL_SCHEMA = {
     'What you want from the page — returns query-focused extracts instead of only full content.'
   ),
   maxContentLength: z.number().int().min(500).optional()
-    .describe('Maximum content characters to return (default 200000).'),
+    .describe('Maximum content characters to return (default 100000, max 200000).'),
 };
 
 export type SearchToolArgs = {
@@ -93,12 +93,13 @@ export const SEARCH_TOOL = {
   name: 'andi_web_search',
   title: 'Andi Web Search',
   description:
-    'Real-time web search via the Andi Search API. Aggregates 40+ search engines and returns ' +
-    'ranked results with instant answers as LLM-ready markdown. Use for current events, facts, ' +
-    'documentation lookup, and any question needing up-to-date web information. Results carry ' +
-    'extracts by default; set content=true for full page content (costs more tokens). Prefer ' +
-    'default extracts first; set content=true or follow up with andi_fetch_url only when ' +
-    'extracts are insufficient.',
+    "Real-time web search via the Andi Search API — Andi's own index of tens of billions of pages, ranked by " +
+    'Trantora for meaning and credibility, with fallback web searches where our own indexes ' +
+    'do not have coverage. Returns ranked results with instant answers as LLM-ready markdown. ' +
+    'Use for current events, facts, documentation lookup, and any question needing up-to-date ' +
+    'web information. Results carry extracts by default; set content=true for full page content ' +
+    '(costs more tokens). Prefer default extracts first; set content=true or follow up with ' +
+    'andi_fetch_url only when extracts are insufficient.',
   inputSchema: SEARCH_TOOL_SCHEMA,
   annotations: READ_ONLY_ANNOTATIONS,
 } as const;

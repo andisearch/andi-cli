@@ -62,8 +62,15 @@ echo "https://example.com/article" | andi fetch
 ```
 
 - `--query <text>` — question or topic to focus the extracts on
-- `--max-content-length <n>` — cap returned content characters (default 200000)
+- `--max-content-length <n>` — cap returned content characters (default 100000, max 200000)
+- `--no-retry` — disable retrying on a 503 "content warming" response (fail immediately, as before)
+- `--retry-max <seconds>` — cumulative wait budget across retries of a 503 (default 30)
 - `--format <format>`, `--json`, `--api-key <key>`
+
+On a 503 "content warming" response (the page is still being retrieved), `fetch` retries
+automatically: up to 3 total attempts, waiting the API's `Retry-After` hint each time, capped so
+it never waits past 30 total seconds (or `--retry-max`). If retries are exhausted, the error is
+the same one you'd have gotten without retrying — same message, exit code 7.
 
 ### `andi mcp`
 

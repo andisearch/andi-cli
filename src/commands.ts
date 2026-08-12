@@ -66,7 +66,7 @@ export const COMMANDS: CommandSpec[] = [
       { name: '--include-domains', arg: '<list>', description: 'Comma-separated domains to restrict results to.' },
       { name: '--exclude-domains', arg: '<list>', description: 'Comma-separated domains to exclude.' },
       { name: '--content', description: 'Fetch full page content for top results instead of extracts (slower, costs more).' },
-      { name: '--max-content-length', arg: '<n>', description: 'Cap content characters per result when --content is set.', default: '200000' },
+      { name: '--max-content-length', arg: '<n>', description: "Cap content characters per result when --content is set. Unset uses the search mode's own ceiling.", default: "mode's ceiling" },
       FORMAT_FLAG,
       JSON_FLAG,
       API_KEY_FLAG,
@@ -78,7 +78,17 @@ export const COMMANDS: CommandSpec[] = [
     description: 'Fetch a single web page as clean, LLM-ready content. URL may also be piped via stdin.',
     flags: [
       { name: '--query', arg: '<text>', description: 'Question or topic to focus the extracts on.' },
-      { name: '--max-content-length', arg: '<n>', description: 'Maximum content characters to return.', default: '200000' },
+      { name: '--max-content-length', arg: '<n>', description: 'Maximum content characters to return (200000 max).', default: '100000' },
+      {
+        name: '--no-retry',
+        description: 'Disable retrying on a 503 "content warming" response (fail immediately, as before).',
+      },
+      {
+        name: '--retry-max',
+        arg: '<seconds>',
+        description: 'Cumulative wait budget across retries of a 503 "content warming" response.',
+        default: '30',
+      },
       FORMAT_FLAG,
       JSON_FLAG,
       API_KEY_FLAG,
