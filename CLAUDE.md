@@ -29,8 +29,14 @@ API already does, it belongs upstream in `andi-search-api`, not here.
 - `src/commands.ts` — single source of truth for the command table (name, usage, flags, enums).
   Both `--help` (`src/help.ts`) and `andi schema` derive from it — never maintain either by hand.
 - `src/search.ts`, `src/fetch.ts` — arg parsing (pure functions, unit-tested) + the REST call.
-- `src/mcpServer.ts` — stdio MCP bridge. Tool names/schemas mirror the hosted `/mcp` server in
-  `andi-search-api/src/routes/mcp.ts` — keep them in sync if the hosted tool contract changes.
+- `src/toolDefs.ts` — MCP tool names, descriptions, argument schemas, and arg→REST-param
+  mapping. **Must stay identical to the hosted `/mcp` server's definitions in
+  `andi-search-api/src/routes/mcp.ts`** — a stdio client and an HTTP client have to see the same
+  tool vocabulary. `test/toolDefs.test.ts` pins the expected param set as a drift guard; when the
+  hosted contract changes, update this file and that list together.
+- `src/mcpServer.ts` — stdio MCP bridge: server wiring plus the in-flight tracker that drains
+  running tool calls when the client disconnects (never exit on stdin close with work pending —
+  the API has already been billed for it).
 - `src/apiClient.ts` — the one place HTTP status codes get translated into `CliError` (which
   carries the exit code). Every command's error handling should route through this + `src/errors.ts`.
 - `src/output.ts` — the JSON envelope shape and the exit-code table. Single source for both.
@@ -46,7 +52,9 @@ API already does, it belongs upstream in `andi-search-api`, not here.
 ## Release process
 
 On a version bump: update `package.json` `version`, `VERSION`, and `src/version.ts`
-(`CLI_VERSION`) together — they are not derived from one another at build time.
+(`CLI_VERSION`) together — they are not derived from one another at build time. Everything else
+reads `CLI_VERSION` (the MCP server's advertised version, the `User-Agent` header), so those
+three files are the whole checklist. Add a `CHANGELOG.md` entry in the same change.
 
 Publish is npm **trusted publishing** (GitHub Actions OIDC), triggered manually via
 `workflow_dispatch` in `.github/workflows/release.yml` — never automatic on push. The trusted

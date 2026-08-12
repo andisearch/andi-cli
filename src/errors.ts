@@ -9,9 +9,20 @@ import { EXIT_CODES, fail, printErrorLine, printJson } from './output.js';
 export function reportError(error: unknown, json: boolean): number {
   if (error instanceof CliError) {
     if (json) {
-      printJson(fail({ code: error.code, message: error.message, hint: error.hint, retryable: error.retryable }));
+      printJson(
+        fail({
+          code: error.code,
+          message: error.message,
+          hint: error.hint,
+          retryable: error.retryable,
+          reason: error.reason,
+          retryAfterSeconds: error.retryAfterSeconds,
+        })
+      );
     } else {
       printErrorLine(error.message);
+      if (error.reason) printErrorLine(`Reason: ${error.reason}`);
+      if (error.retryAfterSeconds) printErrorLine(`Retry after ${error.retryAfterSeconds}s.`);
       if (error.hint) printErrorLine(error.hint);
     }
     return error.exitCode;

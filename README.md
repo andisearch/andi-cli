@@ -31,26 +31,39 @@ andi search "typescript satisfies operator"
 
 ## Commands
 
-### `andi search "<query>" [flags]`
+### `andi search "<query>" ["<query>" ...] [flags]`
 
 ```bash
 andi search "who won the 2026 f1 championship" --mode deep --limit 5
+andi search "rust async runtime" "tokio vs async-std" --limit 8   # one call, fused ranking
 ```
 
 - `--mode <mode>` — `auto` (default) `low-cost` `fast` `balanced` `deep` `exhaustive`
 - `--limit <n>` — number of results (default 10)
-- `--json` — force JSON output
-- `--api-key <key>`
+- `--offset <n>` — result offset for pagination (default 0)
+- `--country <iso2>` — ISO-2 country code for localization (e.g. `US`, `DE`)
+- `--language <code>` — ISO language code (e.g. `en`, `de`)
+- `--safe <level>` — `off` `moderate` `strict`
+- `--date-range <range>` — `24h` `7d` `30d` `90d` `1y`
+- `--include-domains <list>` / `--exclude-domains <list>` — comma-separated domains
+- `--content` — fetch full page content for top results instead of extracts (slower, costs more)
+- `--max-content-length <n>` — cap content characters per result when `--content` is set
+- `--format <format>`, `--json`, `--api-key <key>`
+
+Up to 5 queries may be given at once. They are answered in a single API call and fused into
+one ranked result set.
 
 ### `andi fetch <url> [flags]`
 
 ```bash
 andi fetch https://example.com/article --json
+andi fetch https://example.com/pricing --query "what does the team plan cost"
 echo "https://example.com/article" | andi fetch
 ```
 
+- `--query <text>` — question or topic to focus the extracts on
 - `--max-content-length <n>` — cap returned content characters (default 200000)
-- `--json`, `--api-key <key>`
+- `--format <format>`, `--json`, `--api-key <key>`
 
 ### `andi mcp`
 
@@ -90,23 +103,32 @@ that want to introspect the CLI instead of scraping `--help`.
 
 ## Output format
 
-- TTY (interactive terminal): human-readable markdown (`format=context`).
-- Piped or `--json`: a JSON envelope, never a bare array —
-  `{"ok": true, "data": ..., "error": null, "meta": {...}}`.
-- Errors: `{"code", "message", "hint", "retryable"}`, printed to stderr in human mode or as
-  `{"ok": false, "error": {...}}` on stdout in JSON mode.
+`--format auto|json|markdown` decides the shape. `auto` (the default) writes human-readable
+markdown (`format=context`) on an interactive terminal and the JSON envelope when stdout is
+piped or redirected. An explicit value always wins, so this writes real markdown to a file:
+
+```bash
+andi search "postgres index types" --format markdown > notes.md
+```
+
+- JSON: an envelope, never a bare array — `{"ok": true, "data": ..., "error": null, "meta": {...}}`.
+- Errors: `{"code", "message", "hint", "retryable", "reason?", "retryAfterSeconds?"}`, printed
+  to stderr in markdown mode or as `{"ok": false, "error": {...}}` on stdout in JSON mode.
+- `--json` is an alias for `--format json`.
 
 ## Exit codes
 
-| Code | Meaning |
-|---|---|
-| 0 | ok |
-| 1 | generic error |
-| 2 | invalid arguments |
-| 3 | auth failure (401 / missing key) |
-| 4 | payment required (402 / credits exhausted) |
-| 5 | rate limited (429) |
-| 6 | timeout |
+| Code | Name | Meaning |
+|---|---|---|
+| 0 | ok | success |
+| 1 | generic | unclassified failure |
+| 2 | invalid_args | bad arguments, or a 400 from the API |
+| 3 | auth | auth failure (401 / missing key) |
+| 4 | payment | payment required (402 / credits exhausted) |
+| 5 | rate_limit | rate limited (429) — `retryAfterSeconds` when the API sent one |
+| 6 | timeout | the request exceeded the client timeout |
+| 7 | service_unavailable | 503/408/504 — temporary, **retryable**; carries the API's `message` and `retryAfterSeconds` (a 503 on `fetch` usually means the page is still being retrieved) |
+| 8 | unprocessable | 422 from `fetch` — the page itself failed, **not retryable**; `reason` is `not_found`, `blocked`, or `unextractable` |
 
 ## Environment variables
 
