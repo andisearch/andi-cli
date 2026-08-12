@@ -80,14 +80,32 @@ async function runSearchTool(args: SearchToolArgs, apiKey: string): Promise<Call
 }
 
 async function runFetchTool(args: FetchToolArgs, apiKey: string): Promise<CallToolResult> {
-  return callAndWrap(`/api/v1/fetch?${buildFetchToolParams(args).toString()}`, apiKey, 'Fetch');
+  return callAndWrap(`/api/v1/fetch?${buildFetchToolParams(args).toString()}`, apiKey, 'Fetch', true);
 }
 
+// Fetch-tool warming-503 absorption: an MCP client can't act on "retry in Ns", so absorb
+// short hints here (mirrors the hosted server). Bounded: 2 extra attempts, hints ≤8s only,
+// so the worst case stays well inside typical client tool budgets.
+const MCP_FETCH_RETRY_ATTEMPTS = 3;
+const MCP_FETCH_RETRY_MAX_HINT_SECONDS = 8;
+
 /** Runs the REST call and translates outcomes into a CallToolResult — never a thrown protocol error. */
-async function callAndWrap(path: string, apiKey: string, label: string): Promise<CallToolResult> {
+async function callAndWrap(path: string, apiKey: string, label: string, retryWarming = false): Promise<CallToolResult> {
   try {
-    // surface=cli-mcp: this call arrived through the stdio bridge, not a direct CLI invocation.
-    const { text } = await apiGet(path, apiKey, { surface: 'cli-mcp' });
+    let text: string;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        // surface=cli-mcp: this call arrived through the stdio bridge, not a direct CLI invocation.
+        ({ text } = await apiGet(path, apiKey, { surface: 'cli-mcp' }));
+        break;
+      } catch (error) {
+        const warming =
+          retryWarming && error instanceof CliError && error.status === 503 &&
+          (error.retryAfterSeconds ?? 5) <= MCP_FETCH_RETRY_MAX_HINT_SECONDS;
+        if (!warming || attempt >= MCP_FETCH_RETRY_ATTEMPTS) throw error;
+        await new Promise((resolve) => setTimeout(resolve, (error.retryAfterSeconds ?? 5) * 1000));
+      }
+    }
     return { content: [{ type: 'text', text }], isError: false };
   } catch (error) {
     const message = error instanceof CliError ? error.message : error instanceof Error ? error.message : String(error);

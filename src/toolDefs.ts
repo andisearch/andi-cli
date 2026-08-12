@@ -110,7 +110,8 @@ export const FETCH_TOOL = {
   description:
     'Fetch and read a specific web page by URL, returning its content as LLM-ready markdown. ' +
     'Use after andi_web_search to read a promising result in full, or whenever you already ' +
-    'know the exact URL you need.',
+    'know the exact URL you need. If a "still being retrieved" error is returned, short ' +
+    'waits are retried automatically; otherwise call again after the stated delay.',
   inputSchema: FETCH_TOOL_SCHEMA,
   annotations: READ_ONLY_ANNOTATIONS,
 } as const;

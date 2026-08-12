@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.2 — 2026-08-12
+- MCP stdio bridge: `andi_fetch_url` now absorbs short content-warming 503s (2 bounded retries, hints ≤8s) and its description documents the retry behavior; `--version`/schema/serverInfo version string corrected to match the package.
 
 - `andi fetch` retries automatically on a 503 "content warming" response: up to 3 total
   attempts, waiting the API's `Retry-After` hint each time, capped at 30 cumulative seconds.
