@@ -52,7 +52,10 @@ API already does, it belongs upstream in `andi-search-api`, not here.
 ## Release process
 
 On a version bump: update `package.json` `version`, `VERSION`, and `src/version.ts`
-(`CLI_VERSION`) together — they are not derived from one another at build time. Everything else
+(`CLI_VERSION`) together — they are not derived from one another at build time. The release
+workflow fails the publish if the three disagree. `dist/` is gitignored, so `prepack` rebuilds it
+on every `npm pack`/`npm publish` — without that, publishing from a clean checkout ships a
+tarball with no binary in it. Everything else
 reads `CLI_VERSION` (the MCP server's advertised version, the `User-Agent` header), so those
 three files are the whole checklist. Add a `CHANGELOG.md` entry in the same change.
 

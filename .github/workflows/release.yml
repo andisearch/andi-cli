@@ -20,12 +20,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node 24 (not 20) on purpose: OIDC trusted publishing needs npm >= 11.5.1, and Node 20
+      # still bundles npm 10.x, which silently has no --provenance OIDC path.
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm ci
+
+      # package.json, VERSION and src/version.ts are hand-synced (nothing derives them at build
+      # time), so drift ships a tarball whose binary reports the wrong version. Caught exactly
+      # that on 0.1.2 before publish.
+      - name: Check version consistency
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          FILE=$(tr -d '[:space:]' < VERSION)
+          SRC=$(node -p "require('fs').readFileSync('src/version.ts','utf8').match(/CLI_VERSION = '([^']+)'/)[1]")
+          echo "package.json=$PKG VERSION=$FILE src/version.ts=$SRC"
+          if [ "$PKG" != "$FILE" ] || [ "$PKG" != "$SRC" ]; then
+            echo "::error::version mismatch across package.json / VERSION / src/version.ts"
+            exit 1
+          fi
 
       - run: npm run typecheck
 
