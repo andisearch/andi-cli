@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 — 2026-08-13
+
+- License: `UNLICENSED` → MIT (Copyright LazyWeb Inc DBA Andi), LICENSE file added to the
+  package. Aligns with `andisearch/airun`.
+- `homepage` now points to the human-readable product page (`https://andiai.com/api`) instead
+  of the bare API base URL; `author` field added.
+- README gains a maintainer release-process section; CLAUDE.md release process updated for the
+  now-registered npm trusted publisher (OIDC via `release.yml`, no token).
+
 ## 0.1.2 — 2026-08-12
 - MCP stdio bridge: `andi_fetch_url` now absorbs short content-warming 503s (2 bounded retries, hints ≤8s) and its description documents the retry behavior; `--version`/schema/serverInfo version string corrected to match the package.
 

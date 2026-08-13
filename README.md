@@ -159,3 +159,26 @@ npm run typecheck
 npm test
 npm run build                               # emits dist/cli.js (ESM) + dist/cli.cjs (CJS)
 ```
+
+## Releasing (maintainers)
+
+Releases publish to npm via **trusted publishing** (GitHub Actions OIDC with provenance) — no
+npm token exists anywhere. The trusted publisher is registered on npmjs.com for this package
+(repo `andisearch/andi-cli`, workflow `release.yml`).
+
+1. Bump the version in **three files together**: `package.json` (`version`), `VERSION`, and
+   `src/version.ts` (`CLI_VERSION`). They are hand-synced; the release workflow fails the
+   publish if they disagree. Patch bumps (`0.1.N`) unless a minor/major is explicitly agreed.
+2. Add a `CHANGELOG.md` entry for the version.
+3. Commit and push to `main`.
+4. Trigger the release: GitHub → Actions → **Release** → Run workflow (or
+   `gh workflow run release.yml`). It never fires on push — publishing is always a deliberate,
+   manual trigger. The workflow checks version consistency, runs typecheck + tests, builds,
+   and runs `npm publish --provenance`.
+
+Do not run `npm publish` locally; a published version number can never be reused, and local
+publishes skip provenance.
+
+## License
+
+MIT © [Andi AI](https://andiai.com) — see [LICENSE](./LICENSE) (LazyWeb Inc DBA Andi).

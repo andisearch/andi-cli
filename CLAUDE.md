@@ -49,18 +49,43 @@ API already does, it belongs upstream in `andi-search-api`, not here.
 - A one-off manual smoke test against the real API (`npx -y @andiai/cli search "..." --json`
   with a real key) is fine when explicitly asked for, but is not part of the automated suite.
 
-## Release process
+## Release process (agents: follow exactly)
 
-On a version bump: update `package.json` `version`, `VERSION`, and `src/version.ts`
-(`CLI_VERSION`) together — they are not derived from one another at build time. The release
-workflow fails the publish if the three disagree. `dist/` is gitignored, so `prepack` rebuilds it
-on every `npm pack`/`npm publish` — without that, publishing from a clean checkout ships a
-tarball with no binary in it. Everything else
-reads `CLI_VERSION` (the MCP server's advertised version, the `User-Agent` header), so those
-three files are the whole checklist. Add a `CHANGELOG.md` entry in the same change.
+The trusted publisher IS configured on npmjs.com (since 2026-08-13, v0.1.2): package
+`@andiai/cli` ← repo `andisearch/andi-cli`, workflow `release.yml`, GitHub Actions OIDC.
+Publishing requires no token and happens ONLY through that workflow.
 
-Publish is npm **trusted publishing** (GitHub Actions OIDC), triggered manually via
-`workflow_dispatch` in `.github/workflows/release.yml` — never automatic on push. The trusted
-publisher must be configured on npmjs.com for this package after the first manual `npm publish`
-establishes it (npm requires the package to exist before you can register a trusted publisher
-for it).
+Steps for a release (each gated on the user's explicit word — see Hard rules):
+
+1. Bump the version in `package.json` (`version`), `VERSION`, and `src/version.ts`
+   (`CLI_VERSION`) **together** — they are not derived from one another at build time, and the
+   release workflow fails the publish if the three disagree. Everything else reads
+   `CLI_VERSION` (the MCP server's advertised version, the `User-Agent` header), so those three
+   files are the whole version checklist. Patch bumps (`0.1.N`) only.
+2. Add a `CHANGELOG.md` entry in the same change.
+3. Run `npm run typecheck` and `npm test`. Then STOP and propose the commit — do not commit,
+   push, or publish without the user's word.
+4. On the user's word to commit/push: commit on the current branch, push to `main`.
+5. On the user's word to publish/release (a separate authorization): trigger the workflow with
+   `gh workflow run release.yml` (or the user runs it from the GitHub Actions tab). It never
+   fires on push. The workflow re-checks version consistency, runs typecheck + tests, builds,
+   and runs `npm publish --provenance`.
+
+**NEVER run `npm publish` locally.** Version numbers are burned forever on npm even if the
+version is unpublished, and local publishes skip OIDC provenance. The only sanctioned publish
+path is the `release.yml` workflow. (`dist/` is gitignored; `prepack` rebuilds it on every
+`npm pack`/`npm publish`, which is what makes the workflow's clean-checkout publish ship a real
+binary.)
+
+Provenance note: `npm publish --provenance` requires the GitHub repo to be **public**. If the
+publish step fails with a provenance error, check repo visibility before anything else.
+
+## Package metadata (keep aligned)
+
+- `license`: `MIT` — LICENSE file carries the full legal name `LazyWeb Inc DBA Andi
+  (https://andiai.com)`. Branding-facing spots (`author` field, README footer) use the short
+  brand form `Andi AI`. Never change the license without the user's explicit direction.
+- `homepage`: `https://andiai.com/api` — the human-readable product page, NOT the API base URL
+  (npm shows it as the "Homepage" link and `npm docs` opens it).
+- `repository`: `git+https://github.com/andisearch/andi-cli.git` — must match GitHub exactly
+  or provenance verification fails.
