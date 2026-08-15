@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 — 2026-08-15
+
+- `andi search` with context/markdown output now defaults to the full agent shape:
+  `metadata=full` plus the server's query-relevant extracts. Opt out with
+  `--metadata basic` / `--no-extracts`. JSON output unchanged (pipe-friendly).
+
 ## 0.1.4 — 2026-08-15
 
 - `--effort <low|medium|high|max>` on `andi search` AND `andi fetch` — the compute dial that

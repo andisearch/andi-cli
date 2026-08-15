@@ -1,6 +1,6 @@
 /** `andi search` — GET /api/v1/search. */
 import { apiGet } from './apiClient.js';
-import { DATE_RANGES, EFFORT_LEVELS, SAFE_LEVELS, SEARCH_MODES } from './commands.js';
+import { DATE_RANGES, EFFORT_LEVELS, METADATA_LEVELS, SAFE_LEVELS, SEARCH_MODES } from './commands.js';
 import { resolveApiKey } from './config.js';
 import { reportError } from './errors.js';
 import {
@@ -30,6 +30,10 @@ export interface SearchArgs {
   excludeDomains?: string;
   content?: boolean;
   maxContentLength?: number;
+  /** Metadata tier override. Unset means "take the format's own default" (see buildSearchParams). */
+  metadata?: 'basic' | 'full';
+  /** Opts out of the context-format extracts default (the API otherwise defaults extracts=true there). */
+  noExtracts?: boolean;
   format?: FormatChoice;
   apiKey?: string;
 }
@@ -101,6 +105,17 @@ export function parseSearchArgs(argv: string[]): ParsedSearchArgs {
       case '--content':
         args.content = true;
         break;
+      case '--metadata': {
+        const raw = argv[++i];
+        if (!(METADATA_LEVELS as readonly string[]).includes(raw)) {
+          return { error: invalidEnum('--metadata', raw, METADATA_LEVELS) };
+        }
+        args.metadata = raw as 'basic' | 'full';
+        break;
+      }
+      case '--no-extracts':
+        args.noExtracts = true;
+        break;
       case '--format': {
         const raw = argv[++i];
         if (!(FORMAT_CHOICES as readonly string[]).includes(raw)) {
@@ -160,6 +175,17 @@ export function buildSearchParams(args: SearchArgs, format: 'json' | 'context'):
   if (args.excludeDomains) params.set('excludeDomains', args.excludeDomains);
   if (args.content) params.set('content', 'true');
   if (args.maxContentLength !== undefined) params.set('maxContentLength', String(args.maxContentLength));
+  // Context format is the agent/LLM-consumption shape (mirrors the MCP tool's self-call in
+  // toolDefs.ts): default to metadata=full so agents get content_type/word_count/lang/publisher
+  // per result. extracts=true is already the REST route's own default for format=context, so it
+  // only needs to be sent explicitly for --no-extracts to opt out. json format keeps the REST
+  // route's plain defaults (metadata=basic, extracts=false) unless the caller asks for --metadata.
+  if (format === 'context') {
+    params.set('metadata', args.metadata ?? 'full');
+    if (args.noExtracts) params.set('extracts', 'false');
+  } else if (args.metadata) {
+    params.set('metadata', args.metadata);
+  }
   return params;
 }
 

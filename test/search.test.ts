@@ -103,6 +103,19 @@ describe('parseSearchArgs', () => {
   it('rejects an unknown flag', () => {
     expect(parseSearchArgs(['q', '--bogus'])).toEqual({ error: 'Unknown flag: --bogus' });
   });
+
+  it('parses --metadata and --no-extracts', () => {
+    expect(parseSearchArgs(['q', '--metadata', 'basic', '--no-extracts'])).toEqual({
+      queries: ['q'],
+      metadata: 'basic',
+      noExtracts: true,
+    });
+  });
+
+  it('rejects an invalid --metadata value', () => {
+    const parsed = parseSearchArgs(['q', '--metadata', 'dev']);
+    expect('error' in parsed && parsed.error).toContain('basic, full');
+  });
 });
 
 describe('buildSearchParams', () => {
@@ -162,5 +175,32 @@ describe('buildSearchParams', () => {
 
   it('omits content entirely when the flag is absent', () => {
     expect(buildSearchParams({ queries: ['x'] }, 'json').get('content')).toBeNull();
+  });
+
+  it('defaults metadata=full for context format, matching the MCP tool self-call', () => {
+    const params = buildSearchParams({ queries: ['cats'] }, 'context');
+    expect(params.get('metadata')).toBe('full');
+    expect(params.get('extracts')).toBeNull(); // API already defaults extracts=true for format=context
+  });
+
+  it('lets --metadata override the context-format default', () => {
+    const params = buildSearchParams({ queries: ['cats'], metadata: 'basic' }, 'context');
+    expect(params.get('metadata')).toBe('basic');
+  });
+
+  it('sends extracts=false only when --no-extracts is set on context format', () => {
+    const params = buildSearchParams({ queries: ['cats'], noExtracts: true }, 'context');
+    expect(params.get('extracts')).toBe('false');
+  });
+
+  it('does not default metadata or extracts for json format', () => {
+    const params = buildSearchParams({ queries: ['cats'] }, 'json');
+    expect(params.get('metadata')).toBeNull();
+    expect(params.get('extracts')).toBeNull();
+  });
+
+  it('forwards an explicit --metadata even on json format', () => {
+    const params = buildSearchParams({ queries: ['cats'], metadata: 'full' }, 'json');
+    expect(params.get('metadata')).toBe('full');
   });
 });

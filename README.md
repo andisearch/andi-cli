@@ -51,6 +51,9 @@ andi search "latest andi search api changes" --effort high        # thoroughness
 - `--include-domains <list>` / `--exclude-domains <list>` — comma-separated domains
 - `--content` — fetch full page content for top results instead of extracts (slower, costs more)
 - `--max-content-length <n>` — cap content characters per result when `--content` is set
+- `--metadata <level>` — `basic` `full`; context format (the default for agent/markdown output)
+  uses `full` by default — content_type, word_count, lang, publisher, and more per result
+- `--no-extracts` — disable query-relevant passage extracts on context-format output (on by default there)
 - `--format <format>`, `--json`, `--api-key <key>`
 
 Up to 5 queries may be given at once. They are answered in a single API call and fused into

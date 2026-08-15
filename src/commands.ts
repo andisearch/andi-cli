@@ -19,6 +19,10 @@ export const EFFORT_LEVELS = ['low', 'medium', 'high', 'max'] as const;
 export const SAFE_LEVELS = ['off', 'moderate', 'strict'] as const;
 export const DATE_RANGES = ['24h', '7d', '30d', '90d', '1y'] as const;
 
+// CLI-facing metadata tiers only — 'dev' is andi-internal and never exposed here. Mirrors the
+// `metadata` values accepted by the REST route (src/routes/search.ts).
+export const METADATA_LEVELS = ['basic', 'full'] as const;
+
 export interface FlagSpec {
   name: string;
   arg?: string;
@@ -82,6 +86,18 @@ export const COMMANDS: CommandSpec[] = [
       { name: '--exclude-domains', arg: '<list>', description: 'Comma-separated domains to exclude.' },
       { name: '--content', description: 'Fetch full page content for top results instead of extracts (slower, costs more).' },
       { name: '--max-content-length', arg: '<n>', description: "Cap content characters per result when --content is set. Unset uses the search mode's own ceiling.", default: "mode's ceiling" },
+      {
+        name: '--metadata',
+        arg: '<level>',
+        description: 'Metadata tier. context format (the default for agent/markdown output) uses full ' +
+          'by default — content_type, word_count, lang, publisher, and more per result.',
+        enum: METADATA_LEVELS,
+        default: "full for context format, basic for json",
+      },
+      {
+        name: '--no-extracts',
+        description: 'Disable query-relevant passage extracts on context-format output (on by default there).',
+      },
       FORMAT_FLAG,
       JSON_FLAG,
       API_KEY_FLAG,
