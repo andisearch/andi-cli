@@ -11,6 +11,11 @@ import { EXIT_CODES, FORMAT_CHOICES } from './output.js';
 // andi-search-api's src/routes/mcp.ts; re-verify there if this list ever looks stale.
 export const SEARCH_MODES = ['auto', 'low-cost', 'fast', 'balanced', 'deep', 'exhaustive'] as const;
 
+// Thoroughness dial, independent of --mode. Mirrors EFFORT_LEVELS in andi-search-api's
+// src/utils/effortLevels.ts (the server also accepts lenient synonyms — minimal, xhigh,
+// ultrahigh — but the CLI exposes only the four canonical values).
+export const EFFORT_LEVELS = ['low', 'medium', 'high', 'max'] as const;
+
 export const SAFE_LEVELS = ['off', 'moderate', 'strict'] as const;
 export const DATE_RANGES = ['24h', '7d', '30d', '90d', '1y'] as const;
 
@@ -48,6 +53,15 @@ const JSON_FLAG: FlagSpec = {
   description: 'Alias for --format json.',
 };
 
+const EFFORT_FLAG: FlagSpec = {
+  name: '--effort',
+  arg: '<level>',
+  description:
+    'Thoroughness dial, independent of --mode (low favours speed, max favours thoroughness). ' +
+    'Omit for adaptive; an explicit --mode wins.',
+  enum: EFFORT_LEVELS,
+};
+
 export const COMMANDS: CommandSpec[] = [
   {
     name: 'search',
@@ -57,6 +71,7 @@ export const COMMANDS: CommandSpec[] = [
       'answered in one call and fused into a single ranked result set.',
     flags: [
       { name: '--mode', arg: '<mode>', description: 'Cost/speed/coverage dial.', enum: SEARCH_MODES, default: 'auto' },
+      EFFORT_FLAG,
       { name: '--limit', arg: '<n>', description: 'Number of results.', default: '10' },
       { name: '--offset', arg: '<n>', description: 'Result offset for pagination.', default: '0' },
       { name: '--country', arg: '<iso2>', description: 'ISO-2 country code for localization (e.g. US, DE).' },
@@ -78,6 +93,7 @@ export const COMMANDS: CommandSpec[] = [
     description: 'Fetch a single web page as clean, LLM-ready content. URL may also be piped via stdin.',
     flags: [
       { name: '--query', arg: '<text>', description: 'Question or topic to focus the extracts on.' },
+      EFFORT_FLAG,
       { name: '--max-content-length', arg: '<n>', description: 'Maximum content characters to return (200000 max).', default: '100000' },
       {
         name: '--no-retry',

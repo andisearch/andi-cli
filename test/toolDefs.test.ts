@@ -30,6 +30,7 @@ const HOSTED_SEARCH_PARAMS = [
   'excludeDomains',
   'content',
   'maxContentLength',
+  'effort',
 ];
 const HOSTED_FETCH_PARAMS = ['url', 'query', 'maxContentLength'];
 
@@ -110,6 +111,7 @@ describe('buildSearchToolParams', () => {
       limit: 5,
       offset: 10,
       searchMode: 'deep',
+      effort: 'high',
       country: 'DE',
       language: 'de',
       safe: 'strict',
@@ -126,6 +128,7 @@ describe('buildSearchToolParams', () => {
       limit: '5',
       offset: '10',
       searchMode: 'deep',
+      effort: 'high',
       country: 'DE',
       language: 'de',
       safe: 'strict',
@@ -139,6 +142,10 @@ describe('buildSearchToolParams', () => {
 
   it('omits content when false rather than sending content=false', () => {
     expect(buildSearchToolParams({ q: 'x', content: false }).get('content')).toBeNull();
+  });
+
+  it('omits effort when absent', () => {
+    expect(buildSearchToolParams({ q: 'x' }).get('effort')).toBeNull();
   });
 });
 

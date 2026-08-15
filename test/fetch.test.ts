@@ -33,6 +33,16 @@ describe('parseFetchArgs', () => {
     expect('error' in parsed && parsed.error).toContain('auto, json, markdown');
   });
 
+  it('parses --effort', () => {
+    const parsed = parseFetchArgs(['https://example.com', '--effort', 'max']);
+    expect(parsed).toEqual({ url: 'https://example.com', effort: 'max' });
+  });
+
+  it('rejects an invalid --effort value and enumerates the valid set', () => {
+    const parsed = parseFetchArgs(['https://example.com', '--effort', 'nonsense']);
+    expect('error' in parsed && parsed.error).toContain('low, medium, high, max');
+  });
+
   it('rejects a non-numeric --max-content-length', () => {
     expect('error' in parseFetchArgs(['https://example.com', '--max-content-length', 'lots'])).toBe(true);
   });
@@ -77,6 +87,11 @@ describe('buildFetchParams', () => {
     const params = buildFetchParams({ url: 'https://example.com', query: 'pricing', maxContentLength: 5000 }, 'json');
     expect(params.get('maxContentLength')).toBe('5000');
     expect(params.get('query')).toBe('pricing');
+  });
+
+  it('forwards effort when set, and omits it when absent', () => {
+    expect(buildFetchParams({ url: 'https://example.com', effort: 'high' }, 'json').get('effort')).toBe('high');
+    expect(buildFetchParams({ url: 'https://example.com' }, 'json').get('effort')).toBeNull();
   });
 });
 

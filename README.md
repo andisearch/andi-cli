@@ -36,9 +36,12 @@ andi search "typescript satisfies operator"
 ```bash
 andi search "who won the 2026 f1 championship" --mode deep --limit 5
 andi search "rust async runtime" "tokio vs async-std" --limit 8   # one call, fused ranking
+andi search "latest andi search api changes" --effort high        # thoroughness dial, independent of --mode
 ```
 
 - `--mode <mode>` — `auto` (default) `low-cost` `fast` `balanced` `deep` `exhaustive`
+- `--effort <level>` — `low` `medium` `high` `max`, thoroughness dial independent of `--mode`; omit for
+  adaptive default; an explicit `--mode` wins
 - `--limit <n>` — number of results (default 10)
 - `--offset <n>` — result offset for pagination (default 0)
 - `--country <iso2>` — ISO-2 country code for localization (e.g. `US`, `DE`)
@@ -58,10 +61,13 @@ one ranked result set.
 ```bash
 andi fetch https://example.com/article --json
 andi fetch https://example.com/pricing --query "what does the team plan cost"
+andi fetch https://example.com/article --effort max   # thoroughness dial for content retrieval
 echo "https://example.com/article" | andi fetch
 ```
 
 - `--query <text>` — question or topic to focus the extracts on
+- `--effort <level>` — `low` `medium` `high` `max`, thoroughness dial for content retrieval; omit for
+  adaptive default
 - `--max-content-length <n>` — cap returned content characters (default 100000, max 200000)
 - `--no-retry` — disable retrying on a 503 "content warming" response (fail immediately, as before)
 - `--retry-max <seconds>` — cumulative wait budget across retries of a 503 (default 30)

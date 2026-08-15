@@ -10,6 +10,7 @@ describe('parseSearchArgs', () => {
     const parsed = parseSearchArgs([
       'test',
       '--mode', 'deep',
+      '--effort', 'high',
       '--limit', '5',
       '--offset', '10',
       '--country', 'DE',
@@ -26,6 +27,7 @@ describe('parseSearchArgs', () => {
     expect(parsed).toEqual({
       queries: ['test'],
       mode: 'deep',
+      effort: 'high',
       limit: 5,
       offset: 10,
       country: 'DE',
@@ -62,6 +64,11 @@ describe('parseSearchArgs', () => {
   it('rejects an invalid --mode value and enumerates the valid set', () => {
     const parsed = parseSearchArgs(['q', '--mode', 'nonsense']);
     expect('error' in parsed && parsed.error).toContain('auto, low-cost, fast, balanced, deep, exhaustive');
+  });
+
+  it('rejects an invalid --effort value and enumerates the valid set', () => {
+    const parsed = parseSearchArgs(['q', '--effort', 'nonsense']);
+    expect('error' in parsed && parsed.error).toContain('low, medium, high, max');
   });
 
   it('rejects an invalid --safe value', () => {
@@ -112,6 +119,11 @@ describe('buildSearchParams', () => {
     expect(params.get('searchMode')).toBe('balanced');
     expect(params.get('limit')).toBe('20');
     expect(params.get('format')).toBe('json');
+  });
+
+  it('forwards effort when set, and omits it when absent', () => {
+    expect(buildSearchParams({ queries: ['cats'], effort: 'max' }, 'json').get('effort')).toBe('max');
+    expect(buildSearchParams({ queries: ['cats'] }, 'json').get('effort')).toBeNull();
   });
 
   it('sends multiple queries as a JSON array in q', () => {

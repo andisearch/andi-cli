@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 — 2026-08-15
+
+- `--effort <low|medium|high|max>` on `andi search` AND `andi fetch` — the compute dial that
+  composes with `searchMode` (mode wins when both are set; omit for the adaptive default).
+  Matches search-api 1.6.143. MCP tool schema parity updated (`effort` in the search tool).
+
 ## 0.1.3 — 2026-08-13
 
 - License: `UNLICENSED` → MIT (Copyright LazyWeb Inc DBA Andi), LICENSE file added to the

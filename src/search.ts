@@ -1,6 +1,6 @@
 /** `andi search` — GET /api/v1/search. */
 import { apiGet } from './apiClient.js';
-import { DATE_RANGES, SAFE_LEVELS, SEARCH_MODES } from './commands.js';
+import { DATE_RANGES, EFFORT_LEVELS, SAFE_LEVELS, SEARCH_MODES } from './commands.js';
 import { resolveApiKey } from './config.js';
 import { reportError } from './errors.js';
 import {
@@ -19,6 +19,7 @@ export interface SearchArgs {
   /** One or more queries; more than one is fused into a single ranked set by the API. */
   queries: string[];
   mode?: string;
+  effort?: string;
   limit?: number;
   offset?: number;
   country?: string;
@@ -57,6 +58,9 @@ export function parseSearchArgs(argv: string[]): ParsedSearchArgs {
     switch (arg) {
       case '--mode':
         args.mode = argv[++i];
+        break;
+      case '--effort':
+        args.effort = argv[++i];
         break;
       case '--limit': {
         const value = parseIntFlag('--limit', argv[++i], 1);
@@ -124,6 +128,9 @@ export function parseSearchArgs(argv: string[]): ParsedSearchArgs {
   if (args.mode && !(SEARCH_MODES as readonly string[]).includes(args.mode)) {
     return { error: invalidEnum('--mode', args.mode, SEARCH_MODES) };
   }
+  if (args.effort && !(EFFORT_LEVELS as readonly string[]).includes(args.effort)) {
+    return { error: invalidEnum('--effort', args.effort, EFFORT_LEVELS) };
+  }
   if (args.safe && !(SAFE_LEVELS as readonly string[]).includes(args.safe)) {
     return { error: invalidEnum('--safe', args.safe, SAFE_LEVELS) };
   }
@@ -142,6 +149,7 @@ export function buildSearchParams(args: SearchArgs, format: 'json' | 'context'):
   const q = args.queries.length > 1 ? JSON.stringify(args.queries) : args.queries[0];
   const params = new URLSearchParams({ q, format });
   if (args.mode) params.set('searchMode', args.mode);
+  if (args.effort) params.set('effort', args.effort);
   if (args.limit !== undefined) params.set('limit', String(args.limit));
   if (args.offset !== undefined) params.set('offset', String(args.offset));
   if (args.country) params.set('country', args.country);

@@ -10,7 +10,7 @@
  * counterpart is a single-file read.
  */
 import { z } from 'zod';
-import { SEARCH_MODES } from './commands.js';
+import { EFFORT_LEVELS, SEARCH_MODES } from './commands.js';
 
 /** The API truncates beyond this (MAX_MULTI_QUERIES); reject early instead of silently dropping. */
 export const MAX_QUERIES = 5;
@@ -48,6 +48,10 @@ export const SEARCH_TOOL_SCHEMA = {
     'balanced everyday web search; deep ~2-3s adds spell correction and more engines; exhaustive ' +
     'multi-round agentic retrieval (up to ~15s); auto picks based on the query.'
   ),
+  effort: z.enum(EFFORT_LEVELS).optional().describe(
+    'How hard to try, independently of searchMode: low favours speed, max favours thoroughness ' +
+    'with the widest coverage and deepest content. Omit for adaptive. An explicit searchMode wins.'
+  ),
   content: z.boolean().optional().describe(
     'Include cleaned page content for each result; increases cost and tokens (default false).'
   ),
@@ -77,6 +81,7 @@ export type SearchToolArgs = {
   limit?: number;
   offset?: number;
   searchMode?: (typeof SEARCH_MODES)[number];
+  effort?: (typeof EFFORT_LEVELS)[number];
   content?: boolean;
   maxContentLength?: number;
   country?: string;
@@ -146,6 +151,9 @@ export function buildSearchToolParams(args: SearchToolArgs): URLSearchParams {
   if (args.limit !== undefined) params.set('limit', String(args.limit));
   if (args.offset !== undefined) params.set('offset', String(args.offset));
   if (args.searchMode) params.set('searchMode', args.searchMode);
+  // Must be forwarded here as well as declared in the schema above — a schema-only param validates
+  // and is then silently dropped, which looks like the dial doing nothing rather than an error.
+  if (args.effort) params.set('effort', args.effort);
   if (args.content) params.set('content', 'true');
   if (args.maxContentLength !== undefined) params.set('maxContentLength', String(args.maxContentLength));
   if (args.country) params.set('country', args.country);

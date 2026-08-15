@@ -1,5 +1,6 @@
 /** `andi fetch` — GET /api/v1/fetch. URL may come from argv or piped stdin. */
 import { apiGet, CliError } from './apiClient.js';
+import { EFFORT_LEVELS } from './commands.js';
 import { resolveApiKey } from './config.js';
 import { reportError } from './errors.js';
 import {
@@ -24,6 +25,7 @@ const DEFAULT_RETRY_WAIT_SECONDS = 5; // used only if the API gives neither a he
 export interface FetchArgs {
   url?: string;
   query?: string;
+  effort?: string;
   maxContentLength?: number;
   format?: FormatChoice;
   apiKey?: string;
@@ -51,6 +53,14 @@ export function parseFetchArgs(argv: string[]): ParsedFetchArgs {
       case '--query':
         args.query = argv[++i];
         break;
+      case '--effort': {
+        const raw = argv[++i];
+        if (!(EFFORT_LEVELS as readonly string[]).includes(raw)) {
+          return { error: `Invalid --effort "${raw ?? ''}". Valid values: ${EFFORT_LEVELS.join(', ')}` };
+        }
+        args.effort = raw;
+        break;
+      }
       case '--format': {
         const raw = argv[++i];
         if (!(FORMAT_CHOICES as readonly string[]).includes(raw)) {
@@ -96,11 +106,12 @@ async function readStdinUrl(): Promise<string | undefined> {
 }
 
 export function buildFetchParams(
-  args: { url: string; query?: string; maxContentLength?: number },
+  args: { url: string; query?: string; effort?: string; maxContentLength?: number },
   format: 'json' | 'context'
 ): URLSearchParams {
   const params = new URLSearchParams({ url: args.url, format });
   if (args.query) params.set('query', args.query);
+  if (args.effort) params.set('effort', args.effort);
   if (args.maxContentLength !== undefined) params.set('maxContentLength', String(args.maxContentLength));
   return params;
 }
@@ -156,7 +167,7 @@ export async function runFetch(argv: string[]): Promise<number> {
 
   const key = resolveApiKey(parsed.apiKey);
   const params = buildFetchParams(
-    { url, query: parsed.query, maxContentLength: parsed.maxContentLength },
+    { url, query: parsed.query, effort: parsed.effort, maxContentLength: parsed.maxContentLength },
     useJson ? 'json' : 'context'
   );
 

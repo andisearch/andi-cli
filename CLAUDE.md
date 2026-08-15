@@ -33,7 +33,9 @@ API already does, it belongs upstream in `andi-search-api`, not here.
   mapping. **Must stay identical to the hosted `/mcp` server's definitions in
   `andi-search-api/src/routes/mcp.ts`** — a stdio client and an HTTP client have to see the same
   tool vocabulary. `test/toolDefs.test.ts` pins the expected param set as a drift guard; when the
-  hosted contract changes, update this file and that list together.
+  hosted contract changes, update this file and that list together. It fails in both
+  directions: a hosted param change breaks it here until this file catches up, and adding a
+  param here before the hosted server ships it breaks it the other way.
 - `src/mcpServer.ts` — stdio MCP bridge: server wiring plus the in-flight tracker that drains
   running tool calls when the client disconnects (never exit on stdin close with work pending —
   the API has already been billed for it).
