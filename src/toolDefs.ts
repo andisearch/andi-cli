@@ -49,7 +49,7 @@ export const SEARCH_TOOL_SCHEMA = {
     'multi-round agentic retrieval (up to ~15s); auto picks based on the query.'
   ),
   effort: z.enum(EFFORT_LEVELS).optional().describe(
-    'How hard to try, independently of searchMode: low favours speed, max favours thoroughness ' +
+    'How hard to try, independently of searchMode: low favors speed, max favors thoroughness ' +
     'with the widest coverage and deepest content. Omit for adaptive. An explicit searchMode wins.'
   ),
   content: z.boolean().optional().describe(

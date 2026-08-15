@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6 — 2026-08-15
+
+- Spelling: favours → favors in the effort descriptions (CLI help + MCP tool schema), US English consistency
+
 ## 0.1.5 — 2026-08-15
 
 - `andi search` with context/markdown output now defaults to the full agent shape:

@@ -61,7 +61,7 @@ const EFFORT_FLAG: FlagSpec = {
   name: '--effort',
   arg: '<level>',
   description:
-    'Thoroughness dial, independent of --mode (low favours speed, max favours thoroughness). ' +
+    'Thoroughness dial, independent of --mode (low favors speed, max favors thoroughness). ' +
     'Omit for adaptive; an explicit --mode wins.',
   enum: EFFORT_LEVELS,
 };
