@@ -156,6 +156,7 @@ andi search "postgres index types" --format markdown > notes.md
 
 - API reference: https://docs.andiai.com
 - Agent install guide: https://api.andiai.com/install.md
+- Skills + plugins (Claude Code marketplace, Codex): https://github.com/andisearch/andi-agent-skills
 - Auth guide: https://api.andiai.com/auth.md
 - Machine-readable API description: https://api.andiai.com/llms.txt
 
